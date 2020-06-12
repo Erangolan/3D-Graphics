@@ -5,29 +5,28 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Stream;
 import javax.swing.JFrame;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 
 public class Application extends Canvas {
-
     private GridLayout grid;
     private int axis;
     private String type;
     private JFrame frame;
     private _Point center_screen;
 
-    private List<Face> Array_face;
+    public List<Face> Array_face;
     private int scale_factor_up, scale_factor_down;
-    private Functions func;
+    public Functions func;
     private int rotation;
     private Canvas canvas;
     private int angle_box;
     private File file;
     private  _Point localTotal[];
-    private List<_Point> vec = new ArrayList<>();
+    private Setting setting;
+    private Orthographic orthographic;
 
 
     public Application(){
@@ -39,20 +38,12 @@ public class Application extends Canvas {
         func = new Functions();
         center_screen = new _Point(func.screen_WIDTH / 2, func.screen_HEIGHT / 2, 1);
         angle_box = 1;
+        this.setting = new Setting();
+        this.orthographic = new Orthographic();
 
         create_widget();
     }
 
-    public void paintTotal(){
-        if (type == "Parallel_Orthographic")
-            Parallel_Orthographic();
-        if (type == "Cavalier")
-            Cavalier();
-        if (type == "Cabinet")
-            Cabinet();
-        if (type == "Perspective")
-            Perspective();
-    }
 
     public void paintFile(File file) {
         func.read_from_file(file.getAbsolutePath());
@@ -63,7 +54,7 @@ public class Application extends Canvas {
             localTotal[i++] = tmp;
         }
 
-        set_face_array();
+        setting.set_face_array(func.total, func.Vertices, Array_face);
 
         // normalizePoints - find edge and center points
         func.normalize_points();
@@ -78,111 +69,6 @@ public class Application extends Canvas {
         paintTotal();
     }
 
-     // ------------- Projection -------------
-     // Parallel_Orthographic - projection
-    public void Parallel_Orthographic(){
-        func.center_paint();
-        total_to_vertices();
-        set_visability();
-        draw_polygon();
-    }
-
-    public void Cavalier(){
-        int angle = angle_box;
-        func.center_paint();
-        total_to_local();
-        local_to_Vertices();
-
-        for (_Point t: func.Vertices){
-            t.x = t.x + (t.z * (float)Math.cos(angle));
-            t.y = t.y + (t.z * (float)Math.sin(angle));
-        }
-
-        set_visability();
-        draw_polygon();
-        local_to_total();
-    }
-
-    public void Cabinet(){
-        int angle = angle_box;
-        func.center_paint();
-        total_to_local();
-        local_to_Vertices();
-
-        for (_Point t: func.Vertices){
-            t.x = t.x + 0.5f * (t.z * (float)Math.cos(angle));
-            t.y = t.y + 0.5f * (t.z * (float)Math.sin(angle));
-        }
-
-        set_visability();
-        draw_polygon();
-        local_to_total();
-    }
-
-    public void Perspective(){
-        int d = angle_box;
-        func.center_paint();
-
-        total_to_local();
-        local_to_Vertices();
-
-        for (_Point t: func.Vertices){
-            t.x = t.x + (t.z / d);
-            t.y = t.y + (t.z / d);
-        }
-
-        set_visability();
-        draw_polygon();
-        local_to_total();
-    }
-
-    public void total_to_local(){
-        for (int i = 0; i < localTotal.length; i++){
-            localTotal[i].setX(func.total.get(i).getX());
-            localTotal[i].setY(func.total.get(i).getY());
-            localTotal[i].setZ(func.total.get(i).getZ());
-        }
-    }
-
-    public void local_to_Vertices(){
-        for (int i = 0; i < localTotal.length; i++){
-            func.Vertices.get(i).setX(localTotal[i].getX());
-            func.Vertices.get(i).setY(localTotal[i].getY());
-            func.Vertices.get(i).setZ(localTotal[i].getZ());
-        }
-    }
-
-
-    public void local_to_total(){
-        for (int i = 0; i < func.total.size(); i++){
-            func.total.get(i).setX(localTotal[i].getX());
-            func.total.get(i).setY(localTotal[i].getY());
-            func.total.get(i).setZ(localTotal[i].getZ());
-        }
-    }
-
-    public void total_to_vertices(){
-        for (int i = 0; i < func.total.size(); i++){
-            func.Vertices.get(i).setX(func.total.get(i).getX());
-            func.Vertices.get(i).setY(func.total.get(i).getY());
-            func.Vertices.get(i).setZ(func.total.get(i).getZ());
-        }
-    }
-
-    public void RotateClick(){
-        if (axis == 1){
-            func.rotate_paintX(rotation);
-            paintTotal();
-        }
-        if (axis == 2){
-            func.rotate_paintY(rotation);
-            paintTotal();
-        }
-        if (axis == 3){
-            func.rotate_paintZ(rotation);
-            paintTotal();
-        }
-    }
 
     public void start_Paint(){
         frame = new JFrame("graphic's window");
@@ -196,46 +82,6 @@ public class Application extends Canvas {
         frame.add(canvas);
         frame.pack();
         frame.setVisible(true);
-    }
-
-    // calculate if face is visible
-    public void set_visability(){
-
-        for (Face f: Array_face){
-            f.d = func.visibility(f.point_array[0].getX(), f.point_array[0].getY(), f.point_array[0].getZ(),
-                    f.point_array[1].getX(), f.point_array[1].getY(), f.point_array[1].getZ(),
-                    f.point_array[2].getX(), f.point_array[2].getY(), f.point_array[2].getZ());
-
-            if (f.point_array.length == 3){
-                Stream.of(f.point_array[0].getZ(), f.point_array[1].getZ(), f.point_array[2].getZ()).
-                        max(Comparator.naturalOrder())
-                        .ifPresent(maxInt -> f.z_index = maxInt);
-            }
-
-            if (f.point_array.length == 4){
-                Stream.of(f.point_array[0].getZ(), f.point_array[1].getZ(), f.point_array[2].getZ(), f.point_array[3].getZ()).
-                        max(Comparator.naturalOrder())
-                        .ifPresent(maxInt -> f.z_index = maxInt);
-            }
-        }
-        sortByZ_index();
-    }
-
-
-    public void sortByZ_index(){
-        for (int i = 0; i < Array_face.size() - 1; i++){
-            for (int j =0; j < Array_face.size() - i - 1; j++){
-                if (Array_face.get(j).z_index > Array_face.get(j + 1).z_index){
-                    Face tmp = new Face(Array_face.get(j));
-                    Array_face.set(j, Array_face.get(j + 1));
-                    Array_face.set(j + 1, tmp);
-                }
-            }
-        }
-    }
-
-    public void clearCanvas(){
-        canvas.getGraphics().clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
 
     // Draw polygons
@@ -259,6 +105,47 @@ public class Application extends Canvas {
                 canvas.getGraphics().drawPolygon(arr11, arr22, arr11.length);
             }
         }
+    }
+
+    public void clearCanvas(){
+        canvas.getGraphics().clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+    }
+
+
+    // ------------- Projection -------------
+    // Parallel_Orthographic - projection
+    public void Parallel_Orthographic(){
+        func.center_paint();
+        orthographic.total_to_vertices(func);
+        orthographic.set_visability(func, Array_face);
+        draw_polygon();
+    }
+
+    public void RotateClick(){
+        if (axis == 1){
+            func.rotate_paintX(rotation);
+            paintTotal();
+        }
+        if (axis == 2){
+            func.rotate_paintY(rotation);
+            paintTotal();
+        }
+        if (axis == 3){
+            func.rotate_paintZ(rotation);
+            paintTotal();
+        }
+    }
+
+
+    public void paintTotal(){
+        if (type == "Parallel_Orthographic")
+            Parallel_Orthographic();
+        if (type == "Cavalier")
+            orthographic.Cavalier(func, angle_box, localTotal, Array_face, this);
+        if (type == "Cabinet")
+            orthographic.Cabinet(func, angle_box, localTotal, Array_face, this);
+        if (type == "Perspective")
+            orthographic.Perspective(func, angle_box, localTotal, Array_face, this);
     }
 
 
@@ -448,165 +335,7 @@ public class Application extends Canvas {
     }
 
 
-    public void set_face_array(){
-
-        for (_Point t: func.total){
-            func.Vertices.add(t);
-        }
-
-        List<_Point> t = new ArrayList<>();
-        t = func.Vertices;
-
-
-        _Point s1[] = new _Point[4];
-        s1[0] = t.get(5);
-        s1[1] = t.get(6);
-        s1[2] = t.get(7);
-        s1[3] = t.get(4);
-
-        Face f1 = new Face(s1);
-
-        Stream.of(t.get(4).getZ(), t.get(5).getZ(), t.get(6).getZ(), t.get(7).getZ()).
-                max(Comparator.naturalOrder())
-                .ifPresent(maxInt -> f1.z_index = maxInt);
-
-        Array_face.add(f1);
-
-        // Bottom
-        _Point s2[] = new _Point[4];
-        s2[0] = t.get(3);
-        s2[1] = t.get(7);
-        s2[2] = t.get(6);
-        s2[3] = t.get(2);
-
-        Face f2 = new Face(s2);
-
-        Stream.of(t.get(3).getZ(), t.get(7).getZ(), t.get(6).getZ(), t.get(2).getZ()).
-                max(Comparator.naturalOrder())
-                .ifPresent(maxInt -> f2.z_index = maxInt);
-
-        Array_face.add(f2);
-
-        // Left
-        _Point s3[] = new _Point[4];
-        s3[0] = t.get(0);
-        s3[1] = t.get(4);
-        s3[2] = t.get(7);
-        s3[3] = t.get(3);
-
-        Face f3 = new Face(s3);
-
-        Stream.of(t.get(0).getZ(), t.get(4).getZ(), t.get(7).getZ(), t.get(3).getZ()).
-                max(Comparator.naturalOrder()).ifPresent(maxInt -> f3.z_index = maxInt);
-
-        Array_face.add(f3);
-
-        // Top
-        _Point s4[] = new _Point[4];
-        s4[0] = t.get(0);
-        s4[1] = t.get(1);
-        s4[2] = t.get(5);
-        s4[3] = t.get(4);
-
-        Face f4 = new Face(s4);
-
-        Stream.of(t.get(0).getZ(), t.get(4).getZ(), t.get(5).getZ(), t.get(1).getZ()).
-                max(Comparator.naturalOrder()).ifPresent(maxInt -> f4.z_index = maxInt);
-
-        Array_face.add(f4);
-
-        // Right
-        _Point s5[] = new _Point[4];
-        s5[0] = t.get(1);
-        s5[1] = t.get(2);
-        s5[2] = t.get(6);
-        s5[3] = t.get(5);
-
-        Face f5 = new Face(s5);
-
-        Stream.of(t.get(1).getZ(), t.get(5).getZ(), t.get(6).getZ(), t.get(2).getZ()).
-                max(Comparator.naturalOrder())
-                .ifPresent(maxInt -> f5.z_index = maxInt);
-
-        Array_face.add(f5);
-
-        // Front
-        _Point s6[] = new _Point[4];
-        s6[0] = t.get(0);
-        s6[1] = t.get(3);
-        s6[2] = t.get(2);
-        s6[3] = t.get(1);
-
-        Face f6 = new Face(s6);
-
-        Stream.of(t.get(0).getZ(), t.get(3).getZ(), t.get(2).getZ(), t.get(1).getZ()).
-                max(Comparator.naturalOrder())
-                .ifPresent(maxInt -> f6.z_index = maxInt);
-
-        Array_face.add(f6);
-
-        // --------------Pyramid--------------
-        // Front
-        _Point s7[] = new _Point[3];
-        s7[0] = t.get(8);
-        s7[1] = t.get(10);
-        s7[2] = t.get(9);
-
-        Face f7 = new Face(s7);
-
-        Stream.of(t.get(8).getZ(), t.get(9).getZ(), t.get(10).getZ()).
-                max(Comparator.naturalOrder())
-                .ifPresent(maxInt -> f7.z_index = maxInt);
-
-        Array_face.add(f7);
-
-        // Left
-        _Point s8[] = new _Point[3];
-        s8[0] = t.get(8);
-        s8[1] = t.get(9);
-        s8[2] = t.get(11);
-
-        Face f8 = new Face(s8);
-
-        Stream.of(t.get(8).getZ(), t.get(9).getZ(), t.get(11).getZ()).
-                max(Comparator.naturalOrder())
-                .ifPresent(maxInt -> f8.z_index = maxInt);
-
-        Array_face.add(f8);
-
-        // Right
-        _Point s9[] = new _Point[3];
-        s9[0] = t.get(9);
-        s9[1] = t.get(10);
-        s9[2] = t.get(11);
-
-        Face f9 = new Face(s9);
-
-        Stream.of(t.get(10).getZ(), t.get(9).getZ(), t.get(11).getZ()).
-                max(Comparator.naturalOrder())
-                .ifPresent(maxInt -> f9.z_index = maxInt);
-
-        Array_face.add(f9);
-
-        // Bottom
-        _Point s10[] = new _Point[3];
-        s10[0] = t.get(8);
-        s10[1] = t.get(11);
-        s10[2] = t.get(10);
-
-        Face f10 = new Face(s10);
-
-        Stream.of(t.get(8).getZ(), t.get(10).getZ(), t.get(11).getZ()).
-                max(Comparator.naturalOrder())
-                .ifPresent(maxInt -> f10.z_index = maxInt);
-
-        Array_face.add(f10);
-    }
-
-
     public static void main (String[] args) {
         Application app = new Application();
     }
 }
-
-
