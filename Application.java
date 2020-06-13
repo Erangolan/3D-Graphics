@@ -12,19 +12,15 @@ import javax.swing.event.ChangeListener;
 
 public class Application extends Canvas {
     private GridLayout grid;
-    private int axis;
+    private int axis, rotation, angle_box, distance_box;
     private String type;
     private JFrame frame;
-    private _Point center_screen;
-
+    private _Point center_screen, localTotal[];
     public List<Face> Array_face;
     private int scale_factor_up, scale_factor_down;
     public Functions func;
-    private int rotation;
     private Canvas canvas;
-    private int angle_box;
     private File file;
-    private  _Point localTotal[];
     private Setting setting;
     private Orthographic orthographic;
 
@@ -35,9 +31,9 @@ public class Application extends Canvas {
         type = "Parallel_Orthographic";
         Array_face = new ArrayList<Face>();
         scale_factor_up = scale_factor_down = rotation = 1;
+        angle_box = distance_box = 1;
         func = new Functions();
         center_screen = new _Point(func.screen_WIDTH / 2, func.screen_HEIGHT / 2, 1);
-        angle_box = 1;
         this.setting = new Setting();
         this.orthographic = new Orthographic();
 
@@ -122,32 +118,38 @@ public class Application extends Canvas {
     }
 
     public void RotateClick(){
-        if (axis == 1){
-            func.rotate_paintX(rotation);
+        switch (axis) {
+            case 1:
+                func.rotate_paintX(rotation);
             paintTotal();
-        }
-        if (axis == 2){
-            func.rotate_paintY(rotation);
-            paintTotal();
-        }
-        if (axis == 3){
-            func.rotate_paintZ(rotation);
-            paintTotal();
+            break;
+            case 2:
+                func.rotate_paintY(rotation);
+                paintTotal();
+                break;
+            case 3:
+                func.rotate_paintZ(rotation);
+                paintTotal();
+                break;
         }
     }
-
 
     public void paintTotal(){
-        if (type == "Parallel_Orthographic")
-            Parallel_Orthographic();
-        if (type == "Cavalier")
-            orthographic.Cavalier(func, angle_box, localTotal, Array_face, this);
-        if (type == "Cabinet")
-            orthographic.Cabinet(func, angle_box, localTotal, Array_face, this);
-        if (type == "Perspective")
-            orthographic.Perspective(func, angle_box, localTotal, Array_face, this);
+        switch (type) {
+            case "Parallel_Orthographic":
+                Parallel_Orthographic();
+                break;
+            case "Cavalier":
+                orthographic.Cavalier(func, angle_box, localTotal, Array_face, this);
+                break;
+            case "Cabinet":
+                orthographic.Cabinet(func, angle_box, localTotal, Array_face, this);
+                break;
+            case "Perspective":
+                orthographic.Perspective(func, distance_box, localTotal, Array_face, this);
+                break;
+        }
     }
-
 
     public void create_widget(){
         JFrame frame = new JFrame("Simple GUI");
@@ -169,7 +171,6 @@ public class Application extends Canvas {
             }
         });
         frame.getContentPane().add(b1);
-
 
         JButton b2 = new JButton("Orthographic");
         b2.setBounds(30,70,140, 40);
@@ -205,7 +206,7 @@ public class Application extends Canvas {
         frame.getContentPane().add(b4);
 
         JButton b5 = new JButton("Perspective");
-        b5.setBounds(30,190,140, 40);
+        b5.setBounds(30,210,140, 40);
         b5.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -214,6 +215,17 @@ public class Application extends Canvas {
             }
         });
         frame.getContentPane().add(b5);
+
+        SpinnerModel valueOfPerspective = new SpinnerNumberModel(1, 1, 50, 1);
+        JSpinner distance = new JSpinner(valueOfPerspective);
+        distance.setBounds(240, 210, 50, 40);
+        distance.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                distance_box = (Integer)distance.getValue();
+            }
+        });
+        frame.add(distance);
 
 
         SpinnerModel value = new SpinnerNumberModel(1, 1, 50, 1);
@@ -226,8 +238,6 @@ public class Application extends Canvas {
             }
         });
         frame.add(ObliqueAngle);
-
-
 
         JButton b6 = new JButton("Scale UP");
         b6.setBounds(60,320,140, 40);
@@ -308,6 +318,13 @@ public class Application extends Canvas {
         frame.getContentPane().add(b10);
 
 
+        JLabel label = new JLabel();
+        label.setText("select angle");
+
+        JPanel p = new JPanel();
+        p.add(label);
+        frame.add(p);
+
         SpinnerModel value3 = new SpinnerNumberModel(1, 1, 50, 1);
         JSpinner sppiner3 = new JSpinner(value3);
         sppiner3.setBounds(250, 470, 50, 40);
@@ -333,7 +350,6 @@ public class Application extends Canvas {
         frame.setVisible(true);
         start_Paint();
     }
-
 
     public static void main (String[] args) {
         Application app = new Application();

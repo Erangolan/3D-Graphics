@@ -1,25 +1,18 @@
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
 public class Orthographic extends Canvas {
-    String type;
-    Functions func;
-    int angle_box;
-    _Point localTotal[];
-    Application app;
-
 
     public void Cavalier(Functions func, int angle_box, _Point localTotal[], List<Face> Array_face, Application app){
         func.center_paint();
         total_to_local(func.total, localTotal);
-        local_to_Vertices(func, localTotal);
+        local_to_Vertices(func.Vertices, localTotal);
 
         for (_Point t: func.Vertices){
-            t.x = t.x + (t.z * (float)Math.cos(angle_box));
-            t.y = t.y + (t.z * (float)Math.sin(angle_box));
+            t.x += t.z * (float)Math.cos(angle_box);
+            t.y += t.z * (float)Math.sin(angle_box);
         }
 
         set_visability(func, Array_face);
@@ -30,7 +23,7 @@ public class Orthographic extends Canvas {
     public void Cabinet(Functions func, int angle_box,  _Point localTotal[], List<Face> Array_face, Application app){
         func.center_paint();
         total_to_local(func.total, localTotal);
-        local_to_Vertices(func, localTotal);
+        local_to_Vertices(func.Vertices, localTotal);
 
         for (_Point t: func.Vertices){
             t.x = t.x + 0.5f * (t.z * (float)Math.cos(angle_box));
@@ -42,14 +35,14 @@ public class Orthographic extends Canvas {
         local_to_total(func, localTotal);
     }
 
-    public void Perspective(Functions func, int angle_box,  _Point localTotal[], List<Face> Array_face, Application app){
+    public void Perspective(Functions func, int distance_box,  _Point localTotal[], List<Face> Array_face, Application app){
         func.center_paint();
         total_to_local(func.total, localTotal);
-        local_to_Vertices(func, localTotal);
+        local_to_Vertices(func.Vertices, localTotal);
 
         for (_Point t: func.Vertices){
-            t.x = t.x + (t.z / angle_box);
-            t.y = t.y + (t.z / angle_box);
+            t.x += (t.z / distance_box);
+            t.y += (t.z / distance_box);
         }
 
         set_visability(func, Array_face);
@@ -65,11 +58,11 @@ public class Orthographic extends Canvas {
         }
     }
 
-    public void local_to_Vertices(Functions func, _Point localTotal[]){
+    public void local_to_Vertices(List<_Point> Vertices, _Point localTotal[]){
         for (int i = 0; i < localTotal.length; i++){
-            func.Vertices.get(i).setX(localTotal[i].getX());
-            func.Vertices.get(i).setY(localTotal[i].getY());
-            func.Vertices.get(i).setZ(localTotal[i].getZ());
+            Vertices.get(i).setX(localTotal[i].getX());
+            Vertices.get(i).setY(localTotal[i].getY());
+            Vertices.get(i).setZ(localTotal[i].getZ());
         }
     }
 
