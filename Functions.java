@@ -1,9 +1,8 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
-
 import static java.lang.Integer.parseInt;
-import static java.lang.Math.abs;
+
 
 public class Functions {
     String path;
@@ -94,8 +93,8 @@ public class Functions {
 
         for (_Point t: total){
             float X = t.getX();
-            t.setX(X * (float)Math.cos(angle) - t.y * (float)Math.sin(angle));
-            t.setY(X * (float)Math.sin(angle) + t.y * (float)Math.cos(angle));
+            t.setX(X * (float)Math.cos(angle) - t.getY() * (float)Math.sin(angle));
+            t.setY(X * (float)Math.sin(angle) + t.getY() * (float)Math.cos(angle));
         }
     }
 
@@ -169,19 +168,7 @@ public class Functions {
         }
     }
 
-    public float visibility(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3){
-        float a1 = x2 - x1;
-        float b1 = y2 - y1;
-        float c1 = z2 - z1;
-
-        float a2 = x3 - x2;
-        float b2 = y3 - y2;
-        float c2 = z3 - z2;
-
-        float Normal_a = b1 * c2 - b2 * c1;
-        float Normal_b = a2 * c1 - a1 * c2;
-        float Normal_c = a1 * b2 - b1 * a2;
-
-        return Normal_a * 0 + Normal_b * 0 + Normal_c * (-200);
+    public float visibility(float x1, float y1, float x2, float y2, float x3, float y3){
+        return -200f * ((x2 - x1) * (y3 - y2) - (y2 - y1) * (x3 - x2));
     }
 }

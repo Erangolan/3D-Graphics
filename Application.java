@@ -12,12 +12,11 @@ import javax.swing.event.ChangeListener;
 
 public class Application extends Canvas {
     private GridLayout grid;
-    private int axis, rotation, angle_box, distance_box;
+    private int axis, rotation, angle_box, distance_box, scale_factor_up, scale_factor_down;
     private String type;
     private JFrame frame;
     private _Point center_screen, localTotal[];
     public List<Face> Array_face;
-    private int scale_factor_up, scale_factor_down;
     public Functions func;
     private Canvas canvas;
     private File file;

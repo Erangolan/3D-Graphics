@@ -1,9 +1,8 @@
-import java.awt.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class Orthographic extends Canvas {
+public class Orthographic {
 
     public void Cavalier(Functions func, int angle_box, _Point localTotal[], List<Face> Array_face, Application app){
         func.center_paint();
@@ -11,8 +10,8 @@ public class Orthographic extends Canvas {
         local_to_Vertices(func.Vertices, localTotal);
 
         for (_Point t: func.Vertices){
-            t.x += t.z * (float)Math.cos(angle_box);
-            t.y += t.z * (float)Math.sin(angle_box);
+            t.setX(t.getX() + t.getZ() * (float)Math.cos(angle_box));
+            t.setY(t.getY() + t.getZ() * (float)Math.sin(angle_box));
         }
 
         set_visability(func, Array_face);
@@ -26,8 +25,8 @@ public class Orthographic extends Canvas {
         local_to_Vertices(func.Vertices, localTotal);
 
         for (_Point t: func.Vertices){
-            t.x = t.x + 0.5f * (t.z * (float)Math.cos(angle_box));
-            t.y = t.y + 0.5f * (t.z * (float)Math.sin(angle_box));
+            t.setX(t.getX() + 0.5f * t.getZ() * (float)Math.cos(angle_box));
+            t.setY(t.getY() + 0.5f * t.getZ() * (float)Math.sin(angle_box));
         }
 
         set_visability(func, Array_face);
@@ -41,8 +40,8 @@ public class Orthographic extends Canvas {
         local_to_Vertices(func.Vertices, localTotal);
 
         for (_Point t: func.Vertices){
-            t.x += (t.z / distance_box);
-            t.y += (t.z / distance_box);
+            t.setX(t.getX() + t.getZ() / distance_box);
+            t.setY(t.getY() + t.getZ() / distance_box);
         }
 
         set_visability(func, Array_face);
@@ -87,9 +86,9 @@ public class Orthographic extends Canvas {
     // calculate if face is visible
     public void set_visability(Functions func,List<Face> Array_face){
         for (Face f: Array_face){
-            f.d = func.visibility(f.point_array[0].getX(), f.point_array[0].getY(), f.point_array[0].getZ(),
-                    f.point_array[1].getX(), f.point_array[1].getY(), f.point_array[1].getZ(),
-                    f.point_array[2].getX(), f.point_array[2].getY(), f.point_array[2].getZ());
+            f.d = func.visibility(f.point_array[0].getX(), f.point_array[0].getY(),
+                    f.point_array[1].getX(), f.point_array[1].getY(),
+                    f.point_array[2].getX(), f.point_array[2].getY());
 
             if (f.point_array.length == 3){
                 Stream.of(f.point_array[0].getZ(), f.point_array[1].getZ(), f.point_array[2].getZ()).

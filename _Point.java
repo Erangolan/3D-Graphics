@@ -1,6 +1,6 @@
 
 public class _Point {
-    public float x, y, z;
+    private float x, y, z;
 
     public _Point(float x, float y, float z) {
         this.x = x;
@@ -42,10 +42,6 @@ public class _Point {
 
     public float getZ(){
         return this.z;
-    }
-
-    public String toString(){
-        return "point: x = " + getX() + ", y = " + getY() + ", z = " + getZ();
     }
 }
 
